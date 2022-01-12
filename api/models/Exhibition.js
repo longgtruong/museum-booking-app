@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-const ExhibitionSchema = mongoose.Schema({
+
+const ExhibitionSchema = Schema({
     title: {
         type: String,
         required: true
@@ -17,10 +19,8 @@ const ExhibitionSchema = mongoose.Schema({
         type: Number,
         required: true
     },
-    location: {
-        type: String,
-        required: true
-    },
+    image_url : { type: String, default: "/museum/default.png"},
+    museum_id: { type: Schema.Types.ObjectId, ref: 'Museum', required: true },
     date: {
         type: Date,
         default: Date.now()
