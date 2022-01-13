@@ -24,6 +24,6 @@ mongoose.connect(process.env.DB_CONNECTION_URL, { useNewUrlParser: true, useUnif
     if (err) console.log(err)
 })
 
-app.listen(3000, () => {
-    console.log("Listening at port 3000")
+app.listen(8080, () => {
+    console.log("Listening at port 8080")
 })
