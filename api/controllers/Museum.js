@@ -15,7 +15,7 @@ module.exports.getMuseums = async (req, rsp) => {
 
 module.exports.getMuseumById = async (req, rsp) => {
     try {
-        const museum = await Exhibition.findById(req.params.id)
+        const museum = await Museum.findById(req.params.id)
         if (museum) {
             rsp.json(museum)
         } else {
