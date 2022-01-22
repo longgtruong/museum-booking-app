@@ -31,11 +31,11 @@ module.exports.getTicketById = async (req, rsp) => {
 }
 
 module.exports.createTicket = async (req, rsp) => {
-    const { exhibition_id } = req.body
+    const { exhibition_id, quantity } = req.body
     const user_id = jwt.decode(req.headers.authorization.split(' ')[1]).id
     try {
         const ticket = await Ticket({
-            exhibition_id, user_id
+            exhibition_id, user_id, quantity
         }).save()
         rsp.status(200).json(ticket)
     } catch (error) {
