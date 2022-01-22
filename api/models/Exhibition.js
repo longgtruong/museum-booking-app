@@ -20,7 +20,7 @@ const ExhibitionSchema = Schema({
         required: true
     },
     price: {
-        type: double,
+        type: Number,
         required: true
     },
     image_url : { type: String, default: "/museum/default.png"},
