@@ -45,5 +45,21 @@ module.exports.createTicket = async (req, rsp) => {
             }
         })
     }
+}
 
+module.exports.cancelTicket = async (req,rsp) => {
+    const { id } = req.params;
+    const user_id = jwt.decode(req.headers.authorization.split(' ')[1]).id
+    try {
+        const ticket = await Ticket.findOne({user_id, id}).update({
+            status: "CANCELLED"
+        });
+        rsp.status(200).json({status: "SUCCESS", message: "Successfully cancelled this ticket."})
+    } catch(err) {
+        rsp.json({
+            errors: {
+                message: error.message
+            }
+        })
+    }
 }
