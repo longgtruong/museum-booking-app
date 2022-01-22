@@ -19,6 +19,10 @@ const ExhibitionSchema = Schema({
         type: Number,
         required: true
     },
+    price: {
+        type: double,
+        required: true
+    },
     image_url : { type: String, default: "/museum/default.png"},
     museum_id: { type: Schema.Types.ObjectId, ref: 'Museum', required: true },
     date: {

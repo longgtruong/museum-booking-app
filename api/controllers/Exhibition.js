@@ -31,9 +31,9 @@ module.exports.getExhibitionById = async (req, rsp) => {
 }
 
 module.exports.createExhibiton = async (req, rsp) => {
-    const { title, description, author, length, museum_id } = req.body
+    const { title, description, author, length, museum_id, price } = req.body
     const exhibition = new Exhibition({
-        title, description, author, length, museum_id
+        title, description, author, length, price, museum_id,
     })
     try {
         const createdExhibition = await exhibition.save()
