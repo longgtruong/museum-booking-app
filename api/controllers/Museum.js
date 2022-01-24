@@ -5,9 +5,9 @@ module.exports.getMuseums = async (req, rsp) => {
         const museums = await Museum.find();
         rsp.json(museums);
     } catch (err) {
-        rsp.json({
+        rsp.status(500).json({
             errors: {
-                message: err.message
+                message: "Internal server error"
             }
         })
     }
@@ -26,9 +26,9 @@ module.exports.getMuseumById = async (req, rsp) => {
             })
         }
     } catch (err) {
-        rsp.json({
+        rsp.status(500).json({
             errors: {
-                message: err.message
+                message: "Internal server error"
             }
         })
     }
@@ -41,16 +41,12 @@ module.exports.createMuseum = async (req, rsp) => {
     })
     try {
         const newMuseum = await museum.save()
-        rsp.json(newMuseum)
+        rsp.status(200).json(newMuseum)
     } catch (err) {
-        rsp.json({
+        rsp.status(500).json({
             errors: {
-                message: err.message
+                message: "Internal server error"
             }
         })
     }
-}
-
-module.exports.removeMuseum = () => {
-
 }

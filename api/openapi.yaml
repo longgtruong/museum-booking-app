@@ -1,0 +1,680 @@
+openapi: 3.0.0
+info:
+  title: Museum Booking App API Specification
+  description: ''
+  version: '1.0'
+tags: []
+servers:
+  - url: https://museum-booking.ew.r.appspot.com
+    description: The Museum Booking App hosted Resource API
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        createdAt:
+          type: string
+          default: 'Date.now()'
+          description: Record the time when the user created the account, by default is Date.now()
+      required:
+        - id
+        - username
+        - password
+        - first_name
+        - last_name
+    Exhibition:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          description: Title of the description
+        author:
+          type: string
+          description: Author of the exhibition
+        description:
+          type: string
+          description: Details of the exhibition
+        length:
+          type: number
+          description: The estimated time for this exhbition visit, saved as number of minutes.
+        price:
+          type: number
+          description: Price per one exhibition ticket
+        image_url:
+          type: string
+          default: '/museum/default.png'
+        date:
+          type: string
+          description: The date which the exhibitions will end on
+        museum_id:
+          "$ref": "#/components/schemas/Museum/properties/_id"
+      required:
+        - title
+        - description
+        - author
+        - length
+        - date
+        - museum_id
+        - image_url
+        - price
+    Museum:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        city: 
+          type: string
+        latitude: 
+          type: number
+        longitude:
+          type: number
+      required:
+        - name
+        - city
+        - latitude
+        - longitude
+    Ticket:
+      type: object
+      properties:
+        _id:
+          type: string
+        user_id:
+          "$ref": "#/components/schemas/User/properties/_id"
+        exhibition_id:
+          "$ref": "#/components/schemas/Exhibition/properties/_id"
+        quantity:
+          type: number
+          default: 1
+        status:
+          enum: ["ACTIVE", "COMPLETED", "CANCELLED"]
+          default: "ACTIVE"
+      required:
+        - user_id
+        - exhibition_id
+        - quantity
+paths:
+  /users/me:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: UsersController_getProfile
+      description: Get user profile
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                properties:
+                  _id:
+                    $ref: '#/components/schemas/User/properties/_id'
+                  username:
+                    $ref: '#/components/schemas/User/properties/username'
+                  first_name:
+                    $ref: '#/components/schemas/User/properties/first_name'
+                  last_name:
+                    $ref: '#/components/schemas/User/properties/last_name'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Unauthorized"
+      tags:
+        - User
+  /users/signup:
+    post:
+      operationId: UsersController_createUser
+      summary: ''
+      description: Sign up as a new user
+      parameters: []      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [username, password, first_name, last_name]
+              properties:
+                username:
+                  $ref: '#/components/schemas/User/properties/username'
+                password:
+                  $ref: '#/components/schemas/User/properties/password'
+                first_name:
+                  $ref: '#/components/schemas/User/properties/first_name'
+                last_name:
+                  $ref: '#/components/schemas/User/properties/last_name'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401': 
+          description: 'Missing fields or duplicate username'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Username & password required"
+      tags:
+        - User
+  /users/login:
+    post:
+      operationId: UsersController_login
+      summary: ''
+      description: Login as a registered user
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [username, password]
+              properties:
+                username:
+                  "$ref": "#/components/schemas/User/properties/username"
+                password:
+                  "$ref": "#/components/schemas/User/properties/password"
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    example: 'Logged in'
+                  token: 
+                    type: string
+                    example: "token"
+        '404':
+          description: 'Not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'User does not exist.'
+        '401':
+          description: 'Invalid authorization'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Wrong password'
+                    
+      tags:
+        - User
+  /museums:
+    get:
+      operationId: MuseumController_getMuseums
+      summary: ''
+      description: Get list of museums
+      parameters: []
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Museum'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Museum
+    post:
+      operationId: MuseumController_createMuseum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [name,city,latitude,longitude]
+              properties:
+                name:
+                  "$ref": "#/components/schemas/Museum/properties/name"
+                city:
+                  "$ref": "#/components/schemas/Museum/properties/city"
+                latitude:
+                  "$ref": "#/components/schemas/Museum/properties/latitude"
+                longitude:
+                  "$ref": "#/components/schemas/Museum/properties/longitude"
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Museum'
+        '401': 
+          description: 'Missing fields'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Missing fields"    
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Internal server error"
+      tags:
+        - Museum
+  /museums/{id}:
+    get:
+      operationId: MuseumController_getMuseumById
+      description: Get a museum
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The museum ID
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Museum'
+        '404':
+          description: 'Not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Museum does not exist.'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Museum
+  /exhibitions:
+    get:
+      operationId: ExhibitionController_getExhibitions
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exhibition'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Exhibition
+        
+    post:
+      operationId: ExhibitionController_createExhibition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [title, description, author, length, museum_id, price]
+              properties:
+                title:
+                  $ref: '#/components/schemas/Exhibition/properties/title'
+                description:
+                  $ref: '#/components/schemas/Exhibition/properties/description'
+                author:
+                  $ref: '#/components/schemas/Exhibition/properties/author'
+                length:
+                  $ref: '#/components/schemas/Exhibition/properties/length'
+                museum_id:
+                  $ref: '#/components/schemas/Exhibition/properties/museum_id'
+                price:
+                  $ref: '#/components/schemas/Exhibition/properties/price'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exhibition'
+        '401': 
+          description: 'Missing fields'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Missing fields"
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Exhibition
+  /exhibitions/{id}:
+    get:
+      operationId: ExhibitionController_getExhibitionById
+      description: Get a exhibition
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The exhibition id
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Exhibition'
+        '404':
+          description: 'Not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Exhibition does not exist.'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Exhibition
+  /tickets:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: TicketController_getTickets
+      description: Get the logged in user tickets
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Unauthorized'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Ticket
+    post:
+      security:
+        - bearerAuth: []
+      operationId: TicketController_createTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [exhibition_id, quantity]
+              properties:
+                exhibition_id:
+                  $ref: '#/components/schemas/Ticket/properties/exhibition_id'
+                quantity:
+                  $ref: '#/components/schemas/Ticket/properties/quantity'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': 
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Unauthorized"
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Ticket
+  /tickets/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: TicketController_getTicketById
+      description: Get a ticket
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ticket id
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Ticket'
+        '401': 
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Unauthorized"
+        '404':
+          description: 'Not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Ticket does not exist.'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Ticket
+  /tickets/{id}/cancel:
+    post:
+      security:
+        - bearerAuth: []
+      operationId: TicketController_cancelTicket
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ticket id
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    example: "Success"
+                  message:
+                    example: "Successfully cancelled this ticket."
+        '401': 
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: "Unauthorized"
+        '404':
+          description: 'Not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Ticket does not exist.'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      message:
+                        example: 'Internal server error'
+      tags:
+        - Ticket
+    

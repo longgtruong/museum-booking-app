@@ -1,15 +1,17 @@
 const Ticket = require("../models/Ticket")
 const jwt = require("jsonwebtoken");
+const Museum = require("../models/Museum");
+const Exhibition = require("../models/Exhibition");
 
 module.exports.getTickets =  async (req, rsp) => {
     const user_id = jwt.decode(req.headers.authorization.split(' ')[1]).id
     try {
         const tickets = await Ticket.find({ user_id })
-        rsp.status(200).json(tickets)
+        rsp.status(200).json(tickets);
     } catch (error) {
-        rsp.json({
+        rsp.status(500).json({
             errors: {
-                message: error.message
+                message: "Internal server error"
             }
         })
     }
@@ -22,9 +24,9 @@ module.exports.getTicketById = async (req, rsp) => {
         const ticket = await Ticket.find({ _id: ticket_id, user_id })
         rsp.status(200).json(ticket)
     } catch (error) {
-        rsp.json({
+        rsp.status(500).json({
             errors: {
-                message: error.message
+                message: "Internal server error"
             }
         })
     }
@@ -41,7 +43,7 @@ module.exports.createTicket = async (req, rsp) => {
     } catch (error) {
         rsp.json({
             errors: {
-                message: error.message
+                message: "Internal server error"
             }
         })
     }
@@ -54,11 +56,11 @@ module.exports.cancelTicket = async (req,rsp) => {
         const ticket = await Ticket.findOne({user_id, id}).update({
             status: "CANCELLED"
         });
-        rsp.status(200).json({status: "SUCCESS", message: "Successfully cancelled this ticket."})
+        rsp.status(200).json({ticket});
     } catch(err) {
         rsp.json({
             errors: {
-                message: error.message
+                message: "Internal server error"
             }
         })
     }

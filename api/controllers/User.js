@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
 module.exports.authenticateRequired = function (req, rsp, next) {
@@ -29,7 +29,7 @@ module.exports.login = async function (req, rsp, next) {
 
                 })
             } else {
-                rsp.status(403).send({
+                rsp.status(401).send({
                     message: "Wrong password"
                 })
             }
@@ -40,7 +40,7 @@ module.exports.login = async function (req, rsp, next) {
 module.exports.signup = async (req, rsp) => {
     const { username, password, first_name, last_name } = req.body;
     if (!username || !password) {
-        rsp.json({
+        rsp.status(401).json({
             errors: {
                 message: "Username & password required"
             }
@@ -52,11 +52,11 @@ module.exports.signup = async (req, rsp) => {
         })
         try {
             const newUser = await user.save()
-            rsp.json(newUser)
+            rsp.status(200).json(newUser)
         } catch (err) {
-            rsp.json({
+            rsp.status(500).json({
                 errors: {
-                    message: err.message
+                    message: "Internal server error"
                 }
             })
         }
@@ -68,9 +68,9 @@ module.exports.getProfile = (req, rsp) => {
     var token = req.headers.authorization.split(' ')[1]
     var user = jwt.decode(token, process.env.SECRET_JWT)
     if (user) {
-        rsp.json(user)
+        rsp.status(200).json(user)
     } else {
-        rsp.status(403).send({
+        rsp.status(404).send({
             errors: {
                 message: "User does not exist."
             }

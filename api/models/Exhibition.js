@@ -9,7 +9,8 @@ const ExhibitionSchema = Schema({
     },
     description: {
         type: String,
-        required: true
+        required: true,
+        default: null
     },
     author: {
         type: String,

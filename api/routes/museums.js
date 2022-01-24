@@ -5,6 +5,5 @@ const { getMuseums, getMuseumById, createMuseum, removeMuseum } = require("../co
 router.get("/", getMuseums)
 router.get("/:id", getMuseumById)
 router.post("/", createMuseum)
-router.delete("/:id", removeMuseum)
 
 module.exports = router;
