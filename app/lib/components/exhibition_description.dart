@@ -1,9 +1,13 @@
 import 'package:app/models/exhibition.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ExhibitionDescription extends StatelessWidget {
   final Exhibition exhibition;
-  ExhibitionDescription({Key? key, required this.exhibition}) : super(key: key);
+  final String museum;
+  ExhibitionDescription(
+      {Key? key, required this.exhibition, required this.museum})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,21 +20,29 @@ class ExhibitionDescription extends StatelessWidget {
             children: [
               Container(
                 alignment: Alignment.topLeft,
-                child: Text("Until 01/20/2022"),
+                child: Text(
+                    "Until " + DateFormat.yMMMMEEEEd().format(exhibition.date)),
               ),
               SizedBox(
                 height: 15.0,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
                       width: MediaQuery.of(context).size.width * 0.6,
-                      child: Text(
-                        "The Pushkin State Museum of Fine Arts",
-                        style: TextStyle(color: Colors.grey),
+                      child: Row(
+                        children: [
+                          Icon(Icons.location_pin),
+                          SizedBox(
+                            width: 5.0,
+                          ),
+                          Text(
+                            museum,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
                       )),
-                  Text("~0.5km", style: TextStyle(color: Colors.grey))
                 ],
               ),
               SizedBox(

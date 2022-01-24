@@ -4,6 +4,7 @@ import 'package:app/screens/exhibition_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 
 class HomePage extends StatefulWidget {
@@ -26,10 +27,6 @@ class _HomePageState extends State<HomePage> {
                       MaterialPageRoute(builder: (_) => AccountScreen()))
                 },
             icon: Icon(Icons.person_outline)),
-        actions: [
-          IconButton(onPressed: () => {}, icon: Icon(Icons.filter_list)),
-          IconButton(onPressed: () => {}, icon: Icon(Icons.search)),
-        ],
         title: Text("Exhibitions"),
         centerTitle: true,
       ),
@@ -117,7 +114,7 @@ class _ExhibitionsListViewState extends State<ExhibitionsListView> {
         return Center(child: CircularProgressIndicator());
       }
       if (state is ExhibitionsLoaded) {
-        final exhibitions = (state as ExhibitionsLoaded).exhibitions;
+        final exhibitions = state.exhibitions;
         return Expanded(
           child: Container(
               child: ListView.builder(
@@ -136,12 +133,22 @@ class _ExhibitionsListViewState extends State<ExhibitionsListView> {
                         margin: EdgeInsets.symmetric(
                             horizontal: 20.0, vertical: 5.0),
                         padding: EdgeInsets.all(10.0),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15.0),
-                            image: DecorationImage(
-                                image: AssetImage("assets/images/" +
-                                    exhibitions[index].imageUrl.toString()),
-                                fit: BoxFit.cover)),
+                        decoration: exhibitions[index]
+                                .imageUrl
+                                .toString()
+                                .contains("http")
+                            ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(15.0),
+                                image: DecorationImage(
+                                    image: NetworkImage(
+                                        exhibitions[index].imageUrl.toString()),
+                                    fit: BoxFit.cover))
+                            : BoxDecoration(
+                                borderRadius: BorderRadius.circular(15.0),
+                                image: DecorationImage(
+                                    image: AssetImage("assets/images" +
+                                        exhibitions[index].imageUrl.toString()),
+                                    fit: BoxFit.cover)),
                         child: Column(
                           children: [
                             Row(
@@ -150,26 +157,20 @@ class _ExhibitionsListViewState extends State<ExhibitionsListView> {
                                 IconButton(
                                     onPressed: () => {},
                                     icon: Icon(Icons.favorite_outline)),
-                                Icon(Icons.airplane_ticket)
+                                FaIcon(FontAwesomeIcons.ticketAlt)
                               ],
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 10.0,
-                                    ),
-                                    Icon(Icons.timer),
-                                    SizedBox(
-                                      width: 10.0,
-                                    ),
-                                    Text(exhibitions[index].length.toString() +
-                                        " minutes")
-                                  ],
+                                SizedBox(
+                                  width: 10.0,
                                 ),
-                                Text("~ 0.9 km")
+                                Icon(Icons.timer),
+                                SizedBox(
+                                  width: 10.0,
+                                ),
+                                Text(exhibitions[index].length.toString() +
+                                    " minutes")
                               ],
                             ),
                             SizedBox(height: 15.0),

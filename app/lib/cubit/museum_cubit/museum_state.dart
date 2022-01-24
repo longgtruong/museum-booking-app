@@ -13,3 +13,12 @@ class ExhibitionsLoaded extends MuseumState {
 }
 
 class ExhibitionsLoadingError extends MuseumState {}
+
+class MuseumLoading extends MuseumState {}
+
+class MuseumLoaded extends MuseumState {
+  final Museum museum;
+  MuseumLoaded(this.museum);
+}
+
+class MuseumLoadError extends MuseumState {}

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app/models/ticket.dart';
 import 'package:app/models/user.dart';
 import 'package:app/services/user_repository.dart';
 import 'package:bloc/bloc.dart';
@@ -15,7 +16,6 @@ class UserCubit extends Cubit<UserState> {
     emit(UserLoggingIn());
     String token = await userRepository.login(username, password);
     if (token == "") {
-      print("failed");
       emit(UserLoginError("Login failed"));
       emit(UserLogin());
     } else {
@@ -27,9 +27,12 @@ class UserCubit extends Cubit<UserState> {
   void logout() async {
     if (await userRepository.isLoggedIn()) {
       await userRepository.deleteToken();
-      print(await userRepository.isLoggedIn());
       emit(UserLogout());
     }
+  }
+
+  isLoggedIn() async {
+    return await userRepository.isLoggedIn();
   }
 
   void signUp(User user) async {
@@ -39,7 +42,17 @@ class UserCubit extends Cubit<UserState> {
       emit(UserSignUp());
     } else {
       emit(UserSigningUp());
+      emit(UserSignUpSuccess());
       emit(UserLogin());
+    }
+  }
+
+  void getUsersTicket() async {
+    if (await userRepository.isLoggedIn()) {
+      emit(LoadingTickets());
+      List<Ticket> tickets = await userRepository.getUserTickets();
+      print(tickets);
+      emit(LoadedTickets(tickets));
     }
   }
 }

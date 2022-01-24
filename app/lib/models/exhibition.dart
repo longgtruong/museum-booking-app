@@ -5,6 +5,8 @@ class Exhibition {
   final String description;
   final String author;
   final String? imageUrl;
+  final String museumId;
+  final num price;
   final DateTime date;
 
   Exhibition(
@@ -14,7 +16,9 @@ class Exhibition {
       required this.description,
       required this.author,
       this.imageUrl,
-      required this.date});
+      required this.date,
+      required this.museumId,
+      required this.price});
 
   static Exhibition fromJson(Map json) => Exhibition(
       id: json["_id"],
@@ -23,5 +27,7 @@ class Exhibition {
       description: json["description"].toString(),
       author: json["author"].toString(),
       date: DateTime.parse(json["date"]),
-      imageUrl: json["image_url"].toString());
+      imageUrl: json["image_url"].toString(),
+      museumId: json["museum_id"].toString(),
+      price: (json["price"] as num));
 }

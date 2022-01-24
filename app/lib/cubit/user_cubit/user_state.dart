@@ -23,9 +23,18 @@ class UserSignUp extends UserState {}
 
 class UserSigningUp extends UserState {}
 
+class UserSignUpSuccess extends UserState {}
+
 class UserSignUpError extends UserState {
   final String msg;
   UserSignUpError(this.msg);
 }
 
 class UserLogout extends UserState {}
+
+class LoadingTickets extends UserState {}
+
+class LoadedTickets extends UserState {
+  final List<Ticket> tickets;
+  LoadedTickets(this.tickets);
+}

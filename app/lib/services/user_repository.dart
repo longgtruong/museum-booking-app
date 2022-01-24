@@ -38,36 +38,40 @@ class UserRepository {
   }
 
   Future<List<Ticket>> getUserTickets() async {
-    if (await isLoggedIn()) {
+    try {
+      String? token = await localStorage.read(key: 'token');
       Response response = await _dio.get(baseUrl + "/tickets",
-          options: Options(headers: {
-            "Authorization":
-                "Bearer " + localStorage.read(key: 'token').toString()
-          }));
-      return response.data.map<Ticket>((json) => User.fromJson(json)).toList();
-    } else {
-      return [];
+          options: Options(
+              headers: {"Authorization": "Bearer " + token.toString()}));
+      return response.data
+          .map<Ticket>((json) => Ticket.fromJson(json))
+          .toList();
+    } catch (err) {
+      throw new ErrorDescription(err.toString());
     }
   }
 
-  createNewUserTicket(Ticket ticket) async {
-    if (await isLoggedIn()) {
-      try {
-        await _dio.post(baseUrl + "/tickets",
-            data: Ticket.toJson(ticket),
-            options: Options(headers: {
-              "Authorization":
-                  "Bearer " + localStorage.read(key: 'token').toString()
-            }));
-      } catch (err) {
-        throw ErrorDescription(err.toString());
-      }
+  Future<Ticket?> createNewUserTicket(Ticket ticket) async {
+    try {
+      localStorage.read(key: 'token').then((value) async {
+        String token = value.toString();
+        _dio.options.headers['content-Type'] = 'application/json';
+        _dio.options.headers['Authorization'] = "Bearer " + token;
+        Response response = await _dio.post(
+          baseUrl + "/tickets",
+          data: Ticket.toJson(ticket),
+        );
+        return Ticket.fromJson(response.data);
+      });
+    } catch (err) {
+      throw new ErrorDescription(err.toString());
     }
   }
 
   cancelTicket(String id) async {
     if (await isLoggedIn()) {
       try {
+        String? token = await localStorage.read(key: 'token');
         await _dio.post(baseUrl + "/tickets/$id/cancel",
             options: Options(headers: {
               "Authorization":

@@ -1,8 +1,12 @@
 import 'package:app/components/exhibition_description.dart';
 import 'package:app/components/exhibition_header.dart';
 import 'package:app/components/payment_modal.dart';
+import 'package:app/cubit/museum_cubit/museum_cubit.dart';
+import 'package:app/cubit/museum_cubit/museum_cubit.dart';
+import 'package:app/cubit/ticket_cubit/ticket_cubit.dart';
 import 'package:app/models/exhibition.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ExhibitionScreen extends StatefulWidget {
@@ -16,6 +20,13 @@ class ExhibitionScreen extends StatefulWidget {
 }
 
 class _ExhibitionScreenState extends State<ExhibitionScreen> {
+  @override
+  initState() {
+    super.initState();
+    BlocProvider.of<MuseumCubit>(context)
+        .getMuseumById(widget.exhibition.museumId);
+  }
+
   Widget buildButton(Widget icon, String title) {
     return Container(
         alignment: Alignment.center,
@@ -52,52 +63,73 @@ class _ExhibitionScreenState extends State<ExhibitionScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: GestureDetector(
           onTap: () {
+            BlocProvider.of<TicketCubit>(context).emit(TicketStart());
             showModalBottomSheet(
                 context: context,
                 builder: (context) {
                   return PaymentModal(
                       paymentButton: buildButton(
-                          FaIcon(FontAwesomeIcons.moneyCheck), "Pay"));
+                          FaIcon(FontAwesomeIcons.moneyCheck), "Pay"),
+                      exhibition: widget.exhibition);
                 });
           },
           child: Container(
             child:
                 buildButton(FaIcon(FontAwesomeIcons.ticketAlt), "Buy ticket"),
           )),
-      body: Container(
-        child: Column(
-          children: [
-            ExhibitionHeader(
-              exhibition: widget.exhibition,
-            ),
-            SizedBox(
-              height: 15.0,
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.0),
-              alignment: Alignment.topLeft,
-              child: Text(
-                widget.exhibition.title,
-                style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+      body: BlocBuilder<MuseumCubit, MuseumState>(
+        builder: (context, state) {
+          if (state is MuseumLoading) {
+            return Center(
+              child: Container(
+                child: CircularProgressIndicator(),
               ),
+            );
+          }
+          if (state is MuseumLoaded) {
+            final museum = state.museum;
+            return Container(
+              child: Column(
+                children: [
+                  ExhibitionHeader(
+                    exhibition: widget.exhibition,
+                  ),
+                  SizedBox(
+                    height: 15.0,
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20.0),
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      widget.exhibition.title,
+                      style: TextStyle(
+                          fontSize: 25.0, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 15.0,
+                  ),
+                  Divider(
+                    height: 10.0,
+                  ),
+                  SizedBox(
+                    height: 15.0,
+                  ),
+                  ExhibitionDescription(
+                      exhibition: widget.exhibition, museum: museum.name),
+                  Divider(
+                    height: 10.0,
+                  ),
+                ],
+              ),
+            );
+          }
+          return Center(
+            child: Container(
+              child: CircularProgressIndicator(),
             ),
-            SizedBox(
-              height: 15.0,
-            ),
-            Divider(
-              height: 10.0,
-            ),
-            SizedBox(
-              height: 15.0,
-            ),
-            ExhibitionDescription(
-              exhibition: widget.exhibition,
-            ),
-            Divider(
-              height: 10.0,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

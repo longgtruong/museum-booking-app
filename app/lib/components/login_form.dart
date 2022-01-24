@@ -25,6 +25,12 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return BlocListener<UserCubit, UserState>(
       listener: (context, state) {
+        if (state is UserSignUpSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Successful signup"),
+            backgroundColor: Colors.green,
+          ));
+        }
         if (state is UserLoginError) {
           final msg = state.msg;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

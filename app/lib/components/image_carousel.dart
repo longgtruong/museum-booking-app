@@ -14,12 +14,16 @@ class ExhibitionImagesCarousel extends StatelessWidget {
       ),
       items: images.map((e) {
         return Container(
-          width: MediaQuery.of(context).size.width,
-          child: Image(
-            image: NetworkImage(e),
-            fit: BoxFit.cover,
-          ),
-        );
+            width: MediaQuery.of(context).size.width,
+            child: e.contains("http")
+                ? Image(
+                    image: NetworkImage(e),
+                    fit: BoxFit.cover,
+                  )
+                : Image.asset(
+                    "assets/images/" + e,
+                    fit: BoxFit.cover,
+                  ));
       }).toList(),
     );
   }

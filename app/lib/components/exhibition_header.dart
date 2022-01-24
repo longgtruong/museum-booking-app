@@ -1,6 +1,8 @@
 import 'package:app/components/image_carousel.dart';
+import 'package:app/cubit/museum_cubit/museum_cubit.dart';
 import 'package:app/models/exhibition.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ExhibitionHeader extends StatelessWidget {
   final Exhibition exhibition;
@@ -8,13 +10,7 @@ class ExhibitionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<String> images = [
-      "http://artimagesgallery.com.au/images/made/images/uploads/Images/Leunig_Michael/Exhibition_2021/Paintings/The-Escapee-2021-41x51cm_web_620_489.jpg",
-      "http://artimagesgallery.com.au/images/made/images/uploads/Images/Leunig_Michael/Exhibition_2021/Paintings/Alive-and-Well-2021-46x46cm_web_499_500.jpg",
-      "http://artimagesgallery.com.au/images/made/images/uploads/Images/Leunig_Michael/Exhibition_2021/Paintings/Mirth-spirit-2021_web_373_500.jpg",
-      "http://artimagesgallery.com.au/images/made/images/uploads/Images/Leunig_Michael/Exhibition_2021/Paintings/Get-Well-2021-30.5x30_web_508_500.jpg",
-      "http://artimagesgallery.com.au/images/made/images/uploads/Images/Leunig_Michael/etchings/Jonah-and-the-Whale-II-web_1024x1024_551_500.jpg"
-    ];
+    List<String> images = [exhibition.imageUrl.toString()];
 
     int size = images.length;
 
@@ -33,7 +29,10 @@ class ExhibitionHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                      onPressed: () => {Navigator.pop(context)},
+                      onPressed: () {
+                        Navigator.pop(context);
+                        BlocProvider.of<MuseumCubit>(context).getExhibitions();
+                      },
                       icon: Icon(Icons.arrow_back_ios)),
                   Row(
                     children: [

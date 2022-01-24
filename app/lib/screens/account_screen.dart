@@ -1,6 +1,8 @@
 import 'package:app/components/signup_form.dart';
 import 'package:app/cubit/user_cubit/user_cubit.dart';
 import 'package:app/components/login_form.dart';
+import 'package:app/models/exhibition.dart';
+import 'package:app/models/ticket.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,15 +17,16 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   @override
-  bool _isLoggedIn = false;
-
   Widget build(BuildContext context) {
+    BlocProvider.of<UserCubit>(context).getUsersTicket();
+
     return Scaffold(
         appBar: AppBar(
           title: Text('Account'),
         ),
         body: BlocBuilder<UserCubit, UserState>(
           builder: (context, state) {
+            print(state);
             if (state is UserLogin || state is UserLoginError) {
               return LoginForm();
             }
@@ -35,7 +38,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: Container(child: CircularProgressIndicator()));
             }
             if (state is UserLoggedIn) {
-              final String token = (state as UserLoggedIn).token;
+              BlocProvider.of<UserCubit>(context).getUsersTicket();
+            }
+            if (state is LoadedTickets) {
               return UserDetails();
             }
             if (state is UserLogout) {
@@ -48,7 +53,7 @@ class _AccountScreenState extends State<AccountScreen> {
 }
 
 class UserDetails extends StatefulWidget {
-  const UserDetails({Key? key}) : super(key: key);
+  UserDetails({Key? key}) : super(key: key);
 
   @override
   _UserDetailsState createState() => _UserDetailsState();
@@ -56,40 +61,118 @@ class UserDetails extends StatefulWidget {
 
 class _UserDetailsState extends State<UserDetails> {
   @override
-  List<String> exhibitions = [
-    "Issac Levitan and author cinema",
-    "Anatomy of cubism",
-    "Russia Big Aventure",
-    "Unnatural selection"
-  ];
-
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 30.0, horizontal: 20.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            children: [
-              WishList(exhibitions: exhibitions),
-              SizedBox(
-                height: 10.0,
-              ),
-              TicketList(
-                tickets: exhibitions,
-              )
-            ],
-          ),
-          Center(
-            child: ElevatedButton(
-              style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.redAccent)),
-              child: Text("Logout", style: TextStyle(color: Colors.white)),
-              onPressed: () => {BlocProvider.of<UserCubit>(context).logout()},
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        if (state is LoadedTickets) {
+          final tickets = state.tickets;
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 30.0, horizontal: 20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      "Ticket",
+                      style: TextStyle(
+                          fontSize: 15.0, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    tickets.isNotEmpty
+                        ? CarouselSlider(
+                            items: List<Widget>.generate(tickets.length,
+                                (int index) {
+                              return Container(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 5.0, vertical: 5.0),
+                                padding: EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    image: DecorationImage(
+                                        image: AssetImage(
+                                            'assets/images/museum/default.png'),
+                                        fit: BoxFit.cover)),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 10.0,
+                                        ),
+                                        Text("Status: "),
+                                        SizedBox(
+                                          width: 10.0,
+                                        ),
+                                        Text(
+                                          tickets[index].status.toString(),
+                                          style: TextStyle(
+                                              color: tickets[index]
+                                                      .status
+                                                      .toString()
+                                                      .contains("ACTIVE")
+                                                  ? Colors.black
+                                                  : Colors.red,
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                      ],
+                                    ),
+                                    Text("Ticket number #" +
+                                        tickets[index].id.toString()),
+                                    Row(
+                                      children: [
+                                        FaIcon(FontAwesomeIcons.ticketAlt),
+                                        Container(
+                                          margin: EdgeInsets.only(left: 10.0),
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            " x " +
+                                                tickets[index]
+                                                    .quantity
+                                                    .toString(),
+                                            style: TextStyle(
+                                                fontSize: 25.0,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              );
+                            }),
+                            options:
+                                CarouselOptions(enableInfiniteScroll: false))
+                        : Center(
+                            child: Container(
+                              child: Text(
+                                  "You currently do not have any tickets."),
+                            ),
+                          )
+                  ],
+                ),
+                Center(
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.redAccent)),
+                    child:
+                        Text("Logout", style: TextStyle(color: Colors.white)),
+                    onPressed: () =>
+                        {BlocProvider.of<UserCubit>(context).logout()},
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        } else {
+          return Container();
+        }
+      },
     );
   }
 }
@@ -128,7 +211,7 @@ class DefaultAuthPage extends StatelessWidget {
 }
 
 class WishList extends StatelessWidget {
-  List<String> exhibitions;
+  List<Exhibition> exhibitions;
   WishList({Key? key, required this.exhibitions}) : super(key: key);
 
   @override
@@ -144,22 +227,21 @@ class WishList extends StatelessWidget {
           SizedBox(
             height: 10.0,
           ),
-          CarouselSlider(
-              items: List<Widget>.generate(4, (int index) {
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.0),
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              'https://i.etsystatic.com/15031880/r/il/fd8ae6/2451259716/il_570xN.2451259716_fhw2.jpg'),
-                          fit: BoxFit.cover)),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          exhibitions.isNotEmpty
+              ? CarouselSlider(
+                  items: List<Widget>.generate(4, (int index) {
+                    return Container(
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+                      padding: EdgeInsets.all(10.0),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15.0),
+                          image: DecorationImage(
+                              image: NetworkImage(
+                                  'https://i.etsystatic.com/15031880/r/il/fd8ae6/2451259716/il_570xN.2451259716_fhw2.jpg'),
+                              fit: BoxFit.cover)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Row(
                             children: [
@@ -170,27 +252,30 @@ class WishList extends StatelessWidget {
                               SizedBox(
                                 width: 10.0,
                               ),
-                              Text("50 minutes")
+                              Text(exhibitions[index].length.toString() +
+                                  " minutes")
                             ],
                           ),
-                          Text("~ 0.9 km")
+                          SizedBox(height: 15.0),
+                          Container(
+                            margin: EdgeInsets.only(left: 10.0),
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              exhibitions[index].title,
+                              style: TextStyle(
+                                  fontSize: 25.0, fontWeight: FontWeight.bold),
+                            ),
+                          )
                         ],
                       ),
-                      SizedBox(height: 15.0),
-                      Container(
-                        margin: EdgeInsets.only(left: 10.0),
-                        alignment: Alignment.topLeft,
-                        child: Text(
-                          exhibitions[index],
-                          style: TextStyle(
-                              fontSize: 25.0, fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    ],
+                    );
+                  }),
+                  options: CarouselOptions())
+              : Center(
+                  child: Container(
+                    child: Text("There are no exhibitions in wishlist"),
                   ),
-                );
-              }),
-              options: CarouselOptions())
+                )
         ],
       ),
     );
@@ -198,7 +283,7 @@ class WishList extends StatelessWidget {
 }
 
 class TicketList extends StatelessWidget {
-  List<String> tickets;
+  List<Ticket> tickets;
   TicketList({Key? key, required this.tickets}) : super(key: key);
 
   @override
@@ -214,79 +299,13 @@ class TicketList extends StatelessWidget {
           SizedBox(
             height: 10.0,
           ),
-          CarouselSlider(
-              items: List<Widget>.generate(4, (int index) {
+          ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (BuildContext context, int index) {
                 return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.0),
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              'https://i.etsystatic.com/15031880/r/il/fd8ae6/2451259716/il_570xN.2451259716_fhw2.jpg'),
-                          fit: BoxFit.cover)),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: 10.0,
-                              ),
-                              Icon(Icons.timer),
-                              SizedBox(
-                                width: 10.0,
-                              ),
-                              Text("50 minutes")
-                            ],
-                          ),
-                          Text("~ 0.9 km")
-                        ],
-                      ),
-                      SizedBox(height: 15.0),
-                      Container(
-                        margin: EdgeInsets.only(left: 10.0),
-                        alignment: Alignment.topLeft,
-                        child: Text(
-                          tickets[index],
-                          style: TextStyle(
-                              fontSize: 25.0, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      SizedBox(height: 15.0),
-                      Container(
-                        margin: EdgeInsets.only(left: 10.0),
-                        alignment: Alignment.topLeft,
-                        child: Text("December 5 at 18:00",
-                            style: TextStyle(
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.8))),
-                      ),
-                      SizedBox(height: 15.0),
-                      Container(
-                        margin: EdgeInsets.only(left: 10.0),
-                        alignment: Alignment.topLeft,
-                        child: Row(
-                          children: [
-                            FaIcon(FontAwesomeIcons.ticketAlt),
-                            SizedBox(width: 5.0),
-                            Text(
-                              "x 1",
-                              style: TextStyle(
-                                  fontSize: 15.0, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: Text(tickets[index].eventId.toString()),
                 );
-              }),
-              options: CarouselOptions())
+              })
         ],
       ),
     );

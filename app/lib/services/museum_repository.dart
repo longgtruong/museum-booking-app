@@ -7,14 +7,10 @@ class MuseumRepository {
   final baseUrl = "https://museum-booking.ew.r.appspot.com";
 
   Future<List<Exhibition>> getExhibitions() async {
-    try {
-      Response result = await _dio.get(baseUrl + "/exhibitions");
-      return result.data
-          .map<Exhibition>((json) => Exhibition.fromJson(json))
-          .toList();
-    } catch (err) {
-      return [];
-    }
+    Response result = await _dio.get(baseUrl + "/exhibitions");
+    return result.data
+        .map<Exhibition>((json) => Exhibition.fromJson(json))
+        .toList();
   }
 
   Future<List<Museum>> getMuseums() async {
@@ -29,7 +25,7 @@ class MuseumRepository {
   Future<Museum> getMuseumsById(String id) async {
     try {
       Response result = await _dio.get(baseUrl + "/museums/" + id);
-      return result.data;
+      return Museum.fromJson(result.data);
     } catch (err) {
       throw Error();
     }
